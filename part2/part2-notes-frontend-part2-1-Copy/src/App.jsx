@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import Notification from './services/notification'
 import personsService from './services/persons'
 
 const App = () => {
@@ -7,7 +8,9 @@ const App = () => {
   const [persons, setPersons] =useState([])
   const [newNumber, setNewNumber] =useState('')
   const [newName, setNewName] =useState('')
-  const [showAll, setShowAll] =useState(true)
+  const [notificationMessage, setMessage] =useState('')
+  const [isErrorMessage, setIsErrorMessage] =useState(false)
+  
 
 
   useEffect(() =>{
@@ -25,25 +28,35 @@ const App = () => {
       console.log(event.target.value)
   }
 
+  const handleAddPersonError = (event) => {
+    setMessage(`'${newName}' is already added to the phonebook'`)
+    setIsErrorMessage(true)
+    setNewName('')
+    setNewNumber('')
+  }
+
+
+
   const addPerson = (event) => {
     event.preventDefault()
     if (persons.some(person => person.name === newName)) {
-      alert(`${newName} is already added to phonebook`)
-      setPersons(persons.concat(response.data))
-      setNewName('')
-      setNewNumber('')
+      console.log('name already exists in the database')
+      handleAddPersonError(event)
       return
     }
+  
     const personObject = {
       name: newName,
       number: newNumber,
-      id: toString(persons.length+1)
+      id: (persons.length +1).toString()
     }
     console.log(personObject)
     personsService
     .create(personObject)
     .then(response => {
       console.log(response)
+      setMessage(`Added ${newName}`)
+      setIsErrorMessage(false)
       setPersons(persons.concat(response.data))
       setNewName('')
       setNewNumber('')
@@ -76,7 +89,11 @@ const App = () => {
 
   return (
     <div>
+
       <h2>Phonebook</h2>
+      <div>
+        <Notification message={notificationMessage} isError={isErrorMessage}/>
+      </div>
       <form onSubmit={addPerson}>
         <div>
           name: <input value={newName} onChange = {handleNameChange}/>
